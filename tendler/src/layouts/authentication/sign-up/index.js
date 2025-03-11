@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Tendler React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -14,13 +14,13 @@ Coded by www.creative-tim.com
 */
 
 // react-router-dom components
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
 import Checkbox from "@mui/material/Checkbox";
 
-// Material Dashboard 2 React components
+// Tendler React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -32,7 +32,38 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 // Images
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
 
+// Redux imports
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../../../store/redux/slices/authSlice";
+
 function Cover() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, token } = useSelector((state) => state.auth);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(registerUser(formData));
+  };
+
+  // Navigate to dashboard when token exists (registration + auto login succeeded)
+  useEffect(() => {
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [token, navigate]);
+
   return (
     <CoverLayout image={bgImage}>
       <Card>
@@ -55,15 +86,39 @@ function Cover() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
+          <MDBox component="form" role="form" onSubmit={handleSubmit}>
             <MDBox mb={2}>
-              <MDInput type="text" label="Name" variant="standard" fullWidth />
+              <MDInput
+                type="text"
+                label="Name"
+                variant="standard"
+                fullWidth
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" variant="standard" fullWidth />
+              <MDInput
+                type="email"
+                label="Email"
+                variant="standard"
+                fullWidth
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" variant="standard" fullWidth />
+              <MDInput
+                type="password"
+                label="Password"
+                variant="standard"
+                fullWidth
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Checkbox />
@@ -86,9 +141,14 @@ function Cover() {
                 Terms and Conditions
               </MDTypography>
             </MDBox>
+            {error && (
+              <MDBox mt={2}>
+                <MDTypography color="error">{error}</MDTypography>
+              </MDBox>
+            )}
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                sign in
+              <MDButton variant="gradient" color="info" fullWidth type="submit" disabled={loading}>
+                {loading ? "Signing up..." : "Sign up"}
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">

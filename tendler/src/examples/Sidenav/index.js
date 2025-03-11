@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+* Tendler React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -14,11 +14,7 @@ Coded by www.creative-tim.com
 */
 
 import { useEffect } from "react";
-
-// react-router-dom components
-import { useLocation, NavLink } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
 // @mui material components
@@ -27,19 +23,19 @@ import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
 
-// Material Dashboard 2 React components
+// Tendler React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
-// Material Dashboard 2 React example components
+// Tendler React example components
 import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 
 // Custom styles for the Sidenav
 import SidenavRoot from "examples/Sidenav/SidenavRoot";
 import sidenavLogoLabel from "examples/Sidenav/styles/sidenav";
 
-// Material Dashboard 2 React context
+// Tendler React context
 import {
   useMaterialUIController,
   setMiniSidenav,
@@ -47,8 +43,14 @@ import {
   setWhiteSidenav,
 } from "context";
 
+// Redux imports for sign out functionality
+import { useDispatch as useReduxDispatch } from "react-redux";
+import { logout } from "../../store/redux/slices/authSlice";
+
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
-  const [controller, dispatch] = useMaterialUIController();
+  const [controller, muiDispatch] = useMaterialUIController();
+  const reduxDispatch = useReduxDispatch();
+  const navigate = useNavigate();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
@@ -61,14 +63,14 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     textColor = "inherit";
   }
 
-  const closeSidenav = () => setMiniSidenav(dispatch, true);
+  const closeSidenav = () => setMiniSidenav(muiDispatch, true);
 
   useEffect(() => {
     // A function that sets the mini state of the sidenav.
     function handleMiniSidenav() {
-      setMiniSidenav(dispatch, window.innerWidth < 1200);
-      setTransparentSidenav(dispatch, window.innerWidth < 1200 ? false : transparentSidenav);
-      setWhiteSidenav(dispatch, window.innerWidth < 1200 ? false : whiteSidenav);
+      setMiniSidenav(muiDispatch, window.innerWidth < 1200);
+      setTransparentSidenav(muiDispatch, window.innerWidth < 1200 ? false : transparentSidenav);
+      setWhiteSidenav(muiDispatch, window.innerWidth < 1200 ? false : whiteSidenav);
     }
 
     /** 
@@ -81,7 +83,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
     // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleMiniSidenav);
-  }, [dispatch, location]);
+  }, [muiDispatch, location, transparentSidenav, whiteSidenav]);
 
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
   const renderRoutes = routes.map(({ type, name, icon, title, noCollapse, key, href, route }) => {
@@ -140,6 +142,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     return returnValue;
   });
 
+  // Sign out handler: dispatch logout action using reduxDispatch and navigate to sign in page
+  const handleSignOut = () => {
+    reduxDispatch(logout());
+    navigate("/authentication/sign-in");
+  };
+
   return (
     <SidenavRoot
       {...rest}
@@ -180,16 +188,8 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       />
       <List>{renderRoutes}</List>
       <MDBox p={2} mt="auto">
-        <MDButton
-          component="a"
-          href="https://www.creative-tim.com/product/material-dashboard-pro-react"
-          target="_blank"
-          rel="noreferrer"
-          variant="gradient"
-          color={sidenavColor}
-          fullWidth
-        >
-          upgrade to pro
+        <MDButton onClick={handleSignOut} variant="gradient" color={sidenavColor} fullWidth>
+          Sign out
         </MDButton>
       </MDBox>
     </SidenavRoot>
